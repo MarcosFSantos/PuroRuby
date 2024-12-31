@@ -22,9 +22,10 @@ loop do
                 request_count += 1
                 break if request_count >= MAX_REQUESTS
             end
-            socket.close
         rescue => e
             puts "Erro: #{e}"
+        ensure
+            socket.close
         end
     end
 end
