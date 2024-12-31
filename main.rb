@@ -2,13 +2,14 @@ require 'socket'
 
 server = TCPServer.new(5000)
 
+TIMEOUT = 10
+MAX_REQUESTS = 100
+
 # Aceitando conexões enquanto o loop estiver sendo executado
 loop do
     # Aceita conexões simultâneas
     Thread.new(server.accept) do |socket|
         begin
-            TIMEOUT = 10
-            MAX_REQUESTS = 100
             request_count = 0
             loop do
                 # Espera a leitura do socket por TIMEOUT segundos
