@@ -8,6 +8,8 @@ loop do
     Thread.new(server.accept) do |socket|
         begin
             TIMEOUT = 10
+            MAX_REQUESTS = 100
+            request_count = 0
             loop do
                 # Espera a leitura do socket por TIMEOUT segundos
                 ready = IO.select([socket], nil, nil, TIMEOUT)
@@ -16,6 +18,9 @@ loop do
                 line = socket.gets
                 puts "O cliente disse: #{line}"
                 socket.puts "Você disse: #{line}"
+                # Conta as requisições
+                request_count += 1
+                break if request_count >= MAX_REQUESTS
             end
             socket.close
         rescue => e
