@@ -1,11 +1,13 @@
 require 'socket'
 require 'logger'
+require_relative 'thread_pool'
 
 class Server
-    def initialize(port)
+    def initialize(port, thread_pool_size)
         @timeout = 60
         @server = TCPServer.new(port)
         @logger = Logger.new(STDOUT)
+        @thread_pool = ThreadPool.new(thread_pool_size)
     end
 
     def start
@@ -13,7 +15,8 @@ class Server
         # Aceita conexões enquanto o loop estiver sendo executado
         loop do
             # Aceita conexões simultâneas
-            Thread.new(@server.accept) { |socket| handle_connection(socket) }
+            socket = @server.accept
+            @thread_pool.schedule { handle_connection(socket) }
         end
     end
 
@@ -33,15 +36,24 @@ class Server
         loop do
             # Espera a leitura do socket por TIMEOUT segundos
             ready = IO.select([socket], nil, nil, @timeout)
-            break unless ready
-            # Responde mensagem do cliente no socket
+            if ready.nil?
+                @logger.warn "Tempo de resposta excedido"
+                break
+            end
+            # Lê uma linha do socket
             line = socket.gets
+            if line.nil?
+                @logger.warn "Cliente desconectado"
+                break
+            end
+            # Responde ao cliente no socket
             @logger.info line
             socket.puts "Você disse: #{line}"
         end
     end
 
     def shutdown
+        @thread_pool.shutdown
         @server.close
         @logger.info "Servidor encerrado"
     end
