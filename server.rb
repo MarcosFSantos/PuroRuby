@@ -1,13 +1,15 @@
 require 'socket'
+require 'logger'
 
 class Server
     def initialize(port)
         @timeout = 60
         @server = TCPServer.new(port)
+        @logger = Logger.new(STDOUT)
     end
 
     def start
-        puts "Servidor iniciado"
+        @logger.info "Servidor iniciado"
         # Aceita conexões enquanto o loop estiver sendo executado
         loop do
             # Aceita conexões simultâneas
@@ -16,13 +18,13 @@ class Server
     end
 
     def handle_connection(socket)
-        puts "Conexão estabelecida"
+        @logger.info "Conexão estabelecida"
         begin
             handle_client(socket)
         rescue => e
-            puts "Erro: #{e}"
+            @logger.error e
         ensure
-            puts "Conexão encerrada"
+            @logger.info "Conexão encerrada"
             socket.close
         end
     end
@@ -34,13 +36,13 @@ class Server
             break unless ready
             # Responde mensagem do cliente no socket
             line = socket.gets
-            p line
+            @logger.info line
             socket.puts "Você disse: #{line}"
         end
     end
 
     def shutdown
         @server.close
-        puts "Servidor encerrado"
+        @logger.info "Servidor encerrado"
     end
 end
