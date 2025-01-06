@@ -29,6 +29,42 @@
         <li><a href="#demonstrar-habilidades-técnicas">Demonstrar habilidades técnicas</a></li>
       </ul>
     </li>
+    <li>
+        <a href="#preparação-do-ambiente">Preparação do Ambiente</a>
+        <ul>
+            <li>
+                <a href="#instalação-do-git">Instalação do Git:</a>
+                <ul>
+                    <li><a href="#debianubuntu">Debian/Ubuntu:</a></li>
+                    <li><a href="#macos">macOS:</a></li>
+                    <li><a href="#windows">Windows:</a></li>
+                </ul>
+            </li>
+            <li><a href="#clonar-o-repositório">Clonar o repositório:</a></li>
+        </ul>
+    </li>
+    <li>
+        <a href="#instalação">Instalação</a>
+        <ul>
+            <li><a href="#qual-escolher">Qual escolher?</a></li>
+            <li>
+                <a href="#rodando-com-docker">Rodando com Docker</a>
+                <ul>
+                    <li><a href="#pré-requisitos">Pré-requisitos:</a></li>
+                    <li><a href="#instalação-do-docker-e-docker-compose">Instalação do Docker e Docker Compose:</a></li>
+                    <li><a href="#execução-do-projeto">Execução do projeto:</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#rodando-com-ruby-431-na-máquina">Rodando com Ruby 4.3.1 na máquina</a>
+                <ul>
+                    <li><a href="#pré-requisitos-1">Pré-requisitos:</a></li>
+                    <li><a href="#instalação-do-ruby-431">Instalação do Ruby 4.3.1:</a></li>
+                    <li><a href="#execução-do-projeto">Execução do projeto:</a></li>
+                </ul>
+            </li>
+        </ul>
+    </li>
   </ol>
 </details>
 
