@@ -6,6 +6,7 @@ class Server
     def initialize(host, port, thread_pool_size)
         @timeout = 60
         @server = TCPServer.new(host, port)
+        $stdout.sync = true
         @logger = Logger.new(STDOUT)
         @thread_pool = ThreadPool.new(thread_pool_size)
     end
