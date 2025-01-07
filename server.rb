@@ -19,9 +19,17 @@ class Server
         @logger.info "Servidor iniciado no endereço #{info[:ip]} na porta #{info[:port]}"
         # Aceita conexões enquanto o loop estiver sendo executado
         loop do
-            # Aceita conexões simultâneas
-            socket = @server.accept
-            @thread_pool.schedule { handle_connection(socket) }
+            begin
+                # Aceita conexões simultâneas
+                socket = @server.accept
+                @thread_pool.schedule { handle_connection(socket) }
+            rescue OpenSSL::SSL::SSLError => e
+                @logger.error "Erro SSL ao aceitar conexão: #{e.message}"
+                next
+            rescue => e
+                @logger.error "Erro inesperado ao aceitar conexão: #{e.message}"
+                next
+            end
         end
     end
 
