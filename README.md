@@ -231,13 +231,19 @@ Para outras distribuições Linux, acesse aqui: https://docs.docker.com/desktop/
  - Execute o seguinte comando
 
 ```
+make cert
+```
+
+ - Depois execute:
+
+```
 docker compose up
 ```
 
-Pronto! O servidor estará rodando na porta 5000, e você pode se conectar a ele usando NetCat para interagir com o projeto. Basta executar o seguinte comando em um novo Terminal para interagir em um chat com o Servidor. Para sair do chat use CTRL+C ou simplesmente feche o Terminal.
+Pronto! O servidor estará rodando na porta 5000, e você pode se conectar a ele usando um cliente SSL/TLS para interagir com o projeto. Basta executar o seguinte comando em um novo Terminal para interagir em um chat com o Servidor:
 
 ```
-nc localhost 5000
+openssl s_client -connect localhost:5000
 ```
 
 Para parar o Servidor, basta usar CTRL+C no Terminal no qual ele esta rodando.
@@ -274,13 +280,19 @@ rbenv global 4.3.1
  - Execute o seguinte comando
 
 ```
+make cert
+```
+
+ - Depois execute:
+
+```
 ruby main.rb
 ```
 
-Pronto! O servidor estará rodando na porta 5000, e você pode se conectar a ele usando NetCat para interagir com o projeto. Basta executar o seguinte comando em um novo Terminal para interagir em um chat com o Servidor. Para sair do chat use CTRL+C ou simplesmente feche o Terminal.
+Pronto! O servidor estará rodando na porta 5000, e você pode se conectar a ele usando um cliente SSL/TLS para interagir com o projeto. Basta executar o seguinte comando em um novo Terminal para interagir em um chat com o Servidor:
 
 ```
-nc localhost 5000
+openssl s_client -connect localhost:5000
 ```
 
 Para parar o Servidor, basta usar CTRL+C no Terminal no qual ele esta rodando.
