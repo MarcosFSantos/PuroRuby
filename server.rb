@@ -7,16 +7,24 @@ require_relative 'thread_pool'
 class Server
     def initialize(host, port, thread_pool_size)
         @timeout = 60
-        tcp_server = TCPServer.new(host, port)
-        @server = OpenSSL::SSL::SSLServer.new(tcp_server, configure_tls)
-        $stdout.sync = true
         @logger = Logger.new(STDOUT)
+        $stdout.sync = true
+        
+        begin
+            # Configura o servidor TCP e adiciona TLS
+            tcp_server = TCPServer.new(host, port)
+            @server = OpenSSL::SSL::SSLServer.new(tcp_server, configure_tls)
+        rescue => e
+            @logger.fatal "Erro ao configurar o servidor: #{e.message}"
+            exit(1)
+        end
+        
+        # Inicializa o pool de threads
         @thread_pool = ThreadPool.new(thread_pool_size)
-    end
+        @logger.info "Servidor iniciado no endereço #{host} na porta #{port}"
+    end 
 
     def start
-        info = server_info
-        @logger.info "Servidor iniciado no endereço #{info[:ip]} na porta #{info[:port]}"
         # Aceita conexões enquanto o loop estiver sendo executado
         loop do
             begin
