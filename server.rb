@@ -96,16 +96,32 @@ class Server
         # Caminhos para o certificado e chave
         cert_path = 'certs/cert.pem'
         key_path = 'certs/key.pem'
-
-        # Ler o certificado e a chave e armazena em variáveis
-        cert = File.read(cert_path)
-        key = File.read(key_path)
-
-        # Cria um contexto SSL e configura o certificado e a chave
-        context = OpenSSL::SSL::SSLContext.new
-        context.cert = OpenSSL::X509::Certificate.new(cert)
-        context.key = OpenSSL::PKey::RSA.new(key)
-
+        
+        begin
+            # Lê o certificado e a chave e armazena em variáveis
+            cert = File.read(cert_path)
+            key = File.read(key_path)
+        rescue Errno::ENOENT => e
+            @logger.fatal "Arquivo de certificado ou chave não encontrado: #{e.message}"
+            raise
+        rescue => e
+            @logger.fatal "Erro inesperado ao ler os arquivos de certificado ou chave: #{e.message}"
+            raise
+        end
+        
+        begin
+            # Cria um contexto SSL e configura o certificado e a chave
+            context = OpenSSL::SSL::SSLContext.new
+            context.cert = OpenSSL::X509::Certificate.new(cert)
+            context.key = OpenSSL::PKey::RSA.new(key)
+        rescue OpenSSL::OpenSSLError => e
+            @logger.fatal "Erro ao carregar o Certificado SSL/TLS: #{e.message}"
+            raise
+        rescue => e
+            @logger.fatal "Erro inesperado ao configurar o contexto SSL/TLS: #{e.message}"
+            raise
+        end
+        
         context
     end
 end
