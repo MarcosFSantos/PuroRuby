@@ -1,11 +1,14 @@
 require 'socket'
 require 'logger'
+require 'openssl'
+
 require_relative 'thread_pool'
 
 class Server
     def initialize(host, port, thread_pool_size)
         @timeout = 60
-        @server = TCPServer.new(host, port)
+        tcp_server = TCPServer.new(host, port)
+        @server = OpenSSL::SSL::SSLServer.new(tcp_server, configure_tls)
         $stdout.sync = true
         @logger = Logger.new(STDOUT)
         @thread_pool = ThreadPool.new(thread_pool_size)
@@ -71,5 +74,22 @@ class Server
     def client_info(socket)
         addr = socket.peeraddr
         { ip: addr[3], port: addr[1], host: addr[2] }
+    end
+
+    def configure_tls
+        # Caminhos para o certificado e chave
+        cert_path = 'certs/cert.pem'
+        key_path = 'certs/key.pem'
+
+        # Ler o certificado e a chave e armazena em variáveis
+        cert = File.read(cert_path)
+        key = File.read(key_path)
+
+        # Cria um contexto SSL e configura o certificado e a chave
+        context = OpenSSL::SSL::SSLContext.new
+        context.cert = OpenSSL::X509::Certificate.new(cert)
+        context.key = OpenSSL::PKey::RSA.new(key)
+
+        context
     end
 end
