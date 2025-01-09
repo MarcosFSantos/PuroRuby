@@ -96,6 +96,8 @@ class Server
         # Caminhos para o certificado e chave
         cert_path = 'certs/cert.pem'
         key_path = 'certs/key.pem'
+        # Protocolos suportados pelo Servidor
+        server_protocols = ["h2"]
         
         begin
             # Lê o certificado e a chave e armazena em variáveis
@@ -110,10 +112,22 @@ class Server
         end
         
         begin
-            # Cria um contexto SSL e configura o certificado e a chave
+            # Cria contexto SSL
             context = OpenSSL::SSL::SSLContext.new
+            # Configura o certificado e a chave no contexto SSL
             context.cert = OpenSSL::X509::Certificate.new(cert)
             context.key = OpenSSL::PKey::RSA.new(key)
+            # Configura a negociação ALPN no contexto SSL
+            context.alpn_protocols = server_protocols
+            context.alpn_select_cb = lambda do |client_protocols|
+                matching_protocols = client_protocols.find { |protocol| server_protocols.include?(protocol) }
+                # Retorna erro se o Cliente e o Servidor não suportarem um mesmo protocolo
+                unless matching_protocols
+                    @logger.fatal "Protocolos #{client_protocols.join(" ")} não suportados pelo Servidor"
+                    raise
+                end
+                matching_protocols
+            end
         rescue OpenSSL::OpenSSLError => e
             @logger.fatal "Erro ao carregar o Certificado SSL/TLS: #{e.message}"
             raise
