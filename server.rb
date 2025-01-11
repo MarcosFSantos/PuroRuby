@@ -2,10 +2,10 @@ require 'socket'
 require 'logger'
 require 'openssl'
 
-require_relative 'thread_pool'
+require_relative 'connection_pool'
 
 class Server
-    def initialize(host, port, thread_pool_size)
+    def initialize(host, port, max_connections)
         @timeout = 60
         @logger = Logger.new(STDOUT)
         $stdout.sync = true
@@ -20,7 +20,7 @@ class Server
         end
         
         # Inicializa o pool de threads
-        @thread_pool = ThreadPool.new(thread_pool_size)
+        @connection_pool = ConnectionPool.new(max_connections, @logger)
         @logger.info "Servidor iniciado no endereço #{host} na porta #{port}"
     end 
 
@@ -30,7 +30,7 @@ class Server
             begin
                 # Aceita conexões simultâneas
                 socket = @server.accept
-                @thread_pool.schedule { handle_connection(socket) }
+                @connection_pool.schedule(socket.peeraddr[3]) { handle_connection(socket) }
             rescue OpenSSL::SSL::SSLError => e
                 @logger.error "Erro SSL ao aceitar conexão: #{e.message}"
                 next
@@ -42,7 +42,7 @@ class Server
     end
 
     def shutdown
-        @thread_pool.shutdown
+        @connection_pool.shutdown
         @server.close
     end
 
@@ -96,6 +96,8 @@ class Server
         # Caminhos para o certificado e chave
         cert_path = 'certs/cert.pem'
         key_path = 'certs/key.pem'
+        # Protocolos suportados pelo Servidor
+        server_protocols = ["h2"]
         
         begin
             # Lê o certificado e a chave e armazena em variáveis
@@ -110,10 +112,22 @@ class Server
         end
         
         begin
-            # Cria um contexto SSL e configura o certificado e a chave
+            # Cria contexto SSL
             context = OpenSSL::SSL::SSLContext.new
+            # Configura o certificado e a chave no contexto SSL
             context.cert = OpenSSL::X509::Certificate.new(cert)
             context.key = OpenSSL::PKey::RSA.new(key)
+            # Configura a negociação ALPN no contexto SSL
+            context.alpn_protocols = server_protocols
+            context.alpn_select_cb = lambda do |client_protocols|
+                matching_protocols = client_protocols.find { |protocol| server_protocols.include?(protocol) }
+                # Retorna erro se o Cliente e o Servidor não suportarem um mesmo protocolo
+                unless matching_protocols
+                    @logger.fatal "Protocolos #{client_protocols.join(" ")} não suportados pelo Servidor"
+                    raise
+                end
+                matching_protocols
+            end
         rescue OpenSSL::OpenSSLError => e
             @logger.fatal "Erro ao carregar o Certificado SSL/TLS: #{e.message}"
             raise
