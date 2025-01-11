@@ -2,10 +2,10 @@ require 'socket'
 require 'logger'
 require 'openssl'
 
-require_relative 'thread_pool'
+require_relative 'connection_pool'
 
 class Server
-    def initialize(host, port, thread_pool_size)
+    def initialize(host, port, max_connections)
         @timeout = 60
         @logger = Logger.new(STDOUT)
         $stdout.sync = true
@@ -20,7 +20,7 @@ class Server
         end
         
         # Inicializa o pool de threads
-        @thread_pool = ThreadPool.new(thread_pool_size)
+        @connection_pool = ConnectionPool.new(max_connections, @logger)
         @logger.info "Servidor iniciado no endereço #{host} na porta #{port}"
     end 
 
@@ -30,7 +30,7 @@ class Server
             begin
                 # Aceita conexões simultâneas
                 socket = @server.accept
-                @thread_pool.schedule { handle_connection(socket) }
+                @connection_pool.schedule(socket.peeraddr[3]) { handle_connection(socket) }
             rescue OpenSSL::SSL::SSLError => e
                 @logger.error "Erro SSL ao aceitar conexão: #{e.message}"
                 next
@@ -42,7 +42,7 @@ class Server
     end
 
     def shutdown
-        @thread_pool.shutdown
+        @connection_pool.shutdown
         @server.close
     end
 
